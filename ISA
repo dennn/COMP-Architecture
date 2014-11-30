@@ -1,0 +1,39 @@
+ISA:
+
+LDR R0, R1
+LDR R0, Constant
+LDR R0, [Address or Label] | R0 = MEM[Address or Label]
+LDR R0, [Address or Label], Offset | R0 = MEM[(Address or Label) + Offset]
+STR R0, [Address], Offset
+STR Constant, [Address], Offset
+
+ADD R0, R1 | R0 = R0 + R1
+ADD R0, Constant | R0 = R0 + Constant
+ADD R0, R1, Constant | R0 = R1 + Constant
+ADD R0, R1, R2 | R0 = R1 + R2
+SUB R0, R1
+SUB R0, constant
+
+B label
+
+BNE R0, R1, Label
+BNE R0, Constant Label
+BNE Constant, R0, Label
+BNE Constant, Constant, Label
+
+BEQ R0, R1, Label
+BEQ R0, Constant Label
+BEQ Constant, R0, Label
+BEQ Constant, Constant, Label
+
+BGT R0, R1, Label
+BGT R0, Constant Label
+BGT Constant, R0, Label
+BGT Constant, Constant, Label
+
+BLT R0, R1, Label
+BLT R0, Constant Label
+BLT Constant, R0, Label
+BLT Constant, Constant, Label
+
+HALT

@@ -1,0 +1,28 @@
+##############################
+######## Features ############
+##############################
+
+##############################
+# @author: will williams
+# University of Bristol
+# gwillwill@gmail.com
+##############################
+
+main:   ADDI R3, R0, 9          # i_max =10
+
+        ADDI R5, R0, 0          # i = 0
+      
+for:    BLTH R3,R0,end
+        
+        LD  R7, b, R5           # r7 = B[i]
+        LD  R8, c, R5           # r8 = C[i]
+	
+        ADD R9, R8, R7          
+        STR R9, a, R5           # A[i] = r7 + r8
+
+        ADDI R5, R5, 1          # i++
+        SUB R3, R3, 1
+        NOP
+        B for
+
+end:    BREAK 0
