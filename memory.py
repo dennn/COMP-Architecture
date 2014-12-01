@@ -8,13 +8,13 @@ class Memory:
 
 	def load(self, address):
 		if address < 0 or address >= len(self.data):
-			raise Exception("Access violation at " + address)
+			raise Exception("Access violation at " + str(address))
 
 		return self.data[address]
 
 	def store(self, address, value):
 		if address < 0 or address >= len(self.data):
-			raise Exception("Access violation at " + address)
+			raise Exception("Access violation at " + str(address))
 
 		self.data[address] = value
 
