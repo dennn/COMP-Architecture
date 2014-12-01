@@ -2,17 +2,23 @@ ISA:
 
 LDR R0, R1
 LDR R0, Constant
-LDR R0, [Address or Label] | R0 = MEM[Address or Label]
-LDR R0, [Address or Label], Offset | R0 = MEM[(Address or Label) + Offset]
-STR R0, [Address], Offset
-STR Constant, [Address], Offset
+LDR R0, [Immediate or Label] | R0 = MEM[Immediate or Label]
+LDR R0, [Immediate or Label], Offset | R0 = MEM[(Immediate or Label) + Offset]
+STR R0, [Immediate or Label] | MEM[Immediate or Label] = R0
+STR R0, [Immediate or Label], Offset | MEM[(Immediate or Label) + Offset] = R0
+STR Constant, [Immediate or Label] | MEM[Immediate or Label] = Constant
+STR Constant, [Immediate or Label], Offset | MEM[(Immediate or Label) + Offset] = Constant
 
 ADD R0, R1 | R0 = R0 + R1
 ADD R0, Constant | R0 = R0 + Constant
 ADD R0, R1, Constant | R0 = R1 + Constant
 ADD R0, R1, R2 | R0 = R1 + R2
-SUB R0, R1
-SUB R0, constant
+ADD R0, Constant, Constant
+SUB R0, R1 | R0 = R0 - R1
+SUB R0, Constant | R0 = R0 - Constant
+SUB R0, R1, Constant | R0 = R1 - Constant
+SUB R0, R1, R2 | R0 = R1 - R2
+SUB R0, Constant, Constant
 
 B label
 
@@ -32,7 +38,7 @@ BGT Constant, R0, Label
 BGT Constant, Constant, Label
 
 BLT R0, R1, Label
-BLT R0, Constant Label
+BLT R0, Constant, Label
 BLT Constant, R0, Label
 BLT Constant, Constant, Label
 

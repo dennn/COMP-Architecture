@@ -1,3 +1,6 @@
+from sets import Set
+from instruction import Instruction
+
 class Assembler():
 	
 	def __init__(self, cpu, args):
@@ -19,14 +22,16 @@ class Assembler():
 
 	def parse(self, instructionFile):
 		instructionCount = 0
+		tempInstructions = []
+
+		# Now get all the instructions, labels and data values
 		for string in instructionFile:
-			string = string.strip()
+			string = self.cleanString(string)
 			string = self.removeComments(string)
 			instructionList = string.split()
 			# We've got an empty line
 			if len(instructionList) == 0:
 				continue
-			print instructionList
 			# Check if we have a label or an opcode
 			operation = instructionList[0]
 			if operation[-1:] == ':':
@@ -38,14 +43,31 @@ class Assembler():
 			elif operation == '.data':
 				self.cpu.memory.store(instructionCount, instructionList[1])
 			else:
-				self.instructions.append(instructionList)
+				tempInstructions.append(instructionList)
 			instructionCount += 1
+
+		# Now conver the instructions to actual instructions
+		for instruction in tempInstructions:
+			newInstruction = Instruction(instruction, self)
+			self.instructions.append(newInstruction)
 
 	def removeComments(self, string):
 		if string.startswith("#"):
 			return ""
 		else:
 			return string
+
+	def cleanString(self, string):
+		string = string.strip()
+		string = string.replace(',', '')
+
+		return string
+
+	def labelLookup(self, label):
+		if label in self.labels:
+			return self.labels[label]
+		else:
+			return None
 
 class Label():
 

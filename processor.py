@@ -2,6 +2,7 @@ import sys
 from memory import *
 from config import *
 from assembler import *
+from instruction import *
 
 class Processor:
 
@@ -22,51 +23,42 @@ class Processor:
 	def fetch(self):
 		while self.pc < len(self.program.instructions):
 			instruction = self.program.instructions[self.pc]
-			operation = instruction[0]
 			if self.arguments.step:
 				print "----------------------------"
 				self.printRegisters()
-				print "Current instruction: " + ' '.join(instruction)
-			self.execute(operation, instruction[1:])
+				print "Current instruction: "
+				print instruction
+				print
+			self.execute(instruction)
 			self.printRegisters()
 			self.cycles += 1
 
 		print "Finished executing. Cycles: " + str(self.cycles)
 		self.memory.printMemory()
 
-	def execute(self, opcode, operands):
-		operands = [operand.strip(",") for operand in operands]
-
+	def execute(self, instruction):
 		self.pc += 1
+		opcode = instruction.opcode
 		if opcode == 'LDR':
-			if len(operands) == 2:
-				self.LDR(operands[0], operands[1], None)
-			else:
-				self.LDR(operands[0], operands[1], operands[2])
+			self.LDR(instruction)
 		elif opcode == 'STR':
-			if len(operands) == 2:
-				self.STR(operands[0], operands[1], None)
-			else:
-				self.STR(operands[0], operands[1], operands[2])
+			self.STR(instruction)
 		elif opcode == 'ADD':
-			if len(operands) == 2:
-				self.ADD(operands[0], operands[1], None)
-			else:
-				self.ADD(operands[0], operands[1], operands[2])
+			self.ADD(instruction)
 		elif opcode == 'SUB':
-			self.SUB(operands[0], operands[1])
+			self.SUB(instruction)
 		elif opcode == 'B':
-			self.B(operands[0])
+			self.B(instruction)
+		elif opcode == 'BNE':
+			self.BNE(instruction)
+		elif opcode == 'BEQ':
+			self.BEQ(instruction)
+		elif opcode == 'BLT':
+			self.BLT(instruction)
+		elif opcode == 'BGT':
+			self.BGT(instruction)
 		elif opcode == 'HALT':
 			self.HALT()
-		elif opcode == 'BNE':
-			self.BNE(operands[0], operands[1], operands[2])
-		elif opcode == 'BEQ':
-			self.BEQ(operands[0], operands[1], operands[2])
-		elif opcode == 'BLT':
-			self.BLT(operands[0], operands[1], operands[2])
-		elif opcode == 'BGT':
-			self.BGT(operands[0], operands[1], operands[2])
 		else:
 			raise Exception("Couldn't find opcode " + opcode)
 
@@ -76,164 +68,261 @@ class Processor:
 				print "R" + str(idx) + "=" + str(register) + ", "
 			print "\n"
 
-	def parseRegister(self, reg):
-		return int(reg[1:])
-
-	def parseAddress(self, address):
-		address = address.replace(',', '')
-		address = address.replace(']', '')
-		address = address.replace('[', '')
-		if address in self.program.labels:
-			labelLookup = self.program.labels[address]
-			return labelLookup.memoryLocation
-		elif address[0] == '#':
-			return int(address[1:])
-		else:
-			reg = self.parseRegister(address[1:-2])
-			return self.registers[reg]
-
 	# Memory Access
-	def LDR(self, r0, r1, r2):
-		r0 = self.parseRegister(r0)
-		r1 = r1.replace(',', '')
-		if r1[0] == '#':
-			constant = int(r1[1:])
-			self.registers[r0] = constant
-		elif r1[0] == '[' and r1[-1:] == ']':
-			address = self.parseAddress(r1)
-			if r2 is not None:
-				if (r2[0] == '#'):
-					offset = int(r2[1:])
-				else:
-					reg = self.parseRegister(r2)
-					offset = self.registers[reg]
-				address += offset
-				if self.arguments.step:
-					self.memory.printMemory()
-			self.registers[r0] = self.memory.load(address)
+	def LDR(self, instruction):
+		# Get all the operands
+		destination = instruction.operands[0]
+		operand1 = instruction.operands[1]
+		if len(instruction.operands) > 2:
+			operand2 = instruction.operands[2]
 		else:
-			r1 = self.parseRegister(r1)
-			self.registers[r0] = self.registers[r1]
+			operand2 = None
 
-	def STR(self, r1, addr, r2):
-		address = self.parseAddress(addr)
-		offset = 0
-		if r2 is not None:
-			if (r2[0] == '#'):
-				offset = int(r2[1:])
+		# Is it a memory type of operation
+		if operand1.memoryLookup == True:
+			offset = 0
+			if operand1.type == OperandType.LABEL:
+				address = operand1.value.memoryLocation
 			else:
-				reg = self.parseRegister(r2)
-				offset = self.registers[reg]
-		if r1[0] == '#':
-			constant = int(r1[1:])
-			self.memory.store(address + offset, constant)
+				address = operand1.value
+			if operand2 is not None:
+				if operand2.type == OperandType.REGISTER:
+					offset = self.registers[operand2.value]
+				else:
+					offset = operand2.value
+			address += offset
+			self.registers[destination.value] = self.memory.load(address)
+			if self.arguments.step:
+				self.memory.printMemory()
 		else:
-			r1 = self.parseRegister(r1)
-			self.memory.store(address + offset, self.registers[r1])
-		if self.arguments.step:
-			self.memory.printMemory()
+			if operand1.type == OperandType.REGISTER:
+				self.registers[destination.value] = self.registers[operand1.value]
+			elif operand1.type == OperandType.IMMEDIATE:
+				self.registers[destination.value] = operand1.value
+			else:
+				print "Fuck"
+
+	def STR(self, instruction):
+		# Get all the operands
+		valueOperand = instruction.operands[0]
+		# Get the value to be stored out of the register
+		if valueOperand.type == OperandType.REGISTER:
+			value = self.registers[valueOperand.value]
+		else:
+			value = valueOperand.value
+
+		destination = instruction.operands[1]
+		if len(instruction.operands) > 2:
+			offsetOperand = instruction.operands[2]
+		else:
+			offsetOperand = None
+
+		# Is it a memory type of operation
+		if destination.memoryLookup == True:
+			offset = 0
+			if destination.type == OperandType.LABEL:
+				address = destination.value.memoryLocation
+			else:
+				address = destination.value
+			if offsetOperand is not None:
+				if offsetOperand.type == OperandType.REGISTER:
+					offset = self.registers[offsetOperand.value]
+				else:
+					offset = offset.value
+			address += offset
+			self.memory.store(address, value)
+			if self.arguments.step:
+				self.memory.printMemory()
 
 	# ALU
-	def ADD(self, destinationRegister, r1, r2):
-		destinationRegister = self.parseRegister(destinationRegister)
-		if r2 is not None:		
-			r1 = self.parseRegister(r1)
-			if r2[0] == '#':
-				constant = int(r2[1:])
-				self.registers[destinationRegister] = self.registers[r1] + constant
-			else:
-				r2 = self.parseRegister(r2)
-				self.registers[destinationRegister] = self.registers[r1] + self.registers[r2]
+	def ADD(self, instruction):
+		# Get all the operands
+		destination = instruction.operands[0]
+		operand1 = instruction.operands[1]
+		if len(instruction.operands) > 2:
+			operand2 = instruction.operands[2]
 		else:
-			if r1[0] == '#':
-				constant = int(r1[1:])
-				self.registers[destinationRegister] += constant
-			else:
-				r1 = self.parseRegister(r1)
-				self.registers[destinationRegister] += self.registers[r1]
+			operand2 = None
 
-	def SUB(self, r0, r1):
-		r0 = self.parseRegister(r0)
-		if r1[0] == '#':
-			constant = int(r1[1:])
-			self.registers[r0] -= constant
+		if operand1.type == OperandType.REGISTER:
+			val1 = self.registers[operand1.value]
+		elif operand1.type == OperandType.IMMEDIATE:
+			val1 = operand1.value
 		else:
-			r1 = self.parseRegister(r1)
-			self.registers[r0] -= self.registers[r1]
+			raise Exception("Couldn't load operand 1 for ADD operation")
+
+		if operand2 is not None:
+			if operand2.type == OperandType.REGISTER:
+				val2 = self.registers[operand2.value]
+			elif operand2.type == OperandType.IMMEDIATE:
+				val2 = operand2.value
+			else:
+				raise Exception("Couldn't load operand 2 for ADD operation")
+			self.registers[destination.value] = val1 + val2
+		else:
+			self.registers[destination.value] += val1
+
+	def SUB(self, instruction):
+		# Get all the operands
+		destination = instruction.operands[0]
+		operand1 = instruction.operands[1]
+		if len(instruction.operands) > 2:
+			operand2 = instruction.operands[2]
+		else:
+			operand2 = None
+
+		if operand1.type == OperandType.REGISTER:
+			val1 = self.registers[operand1.value]
+		elif operand1.type == OperandType.IMMEDIATE:
+			val1 = operand1.value
+		else:
+			raise Exception("Couldn't load operand 1 for SUB operation")
+
+		if operand2 is not None:
+			if operand2.type == OperandType.REGISTER:
+				val2 = self.registers[operand2.value]
+			elif operand2.type == OperandType.IMMEDIATE:
+				val2 = operand2.value
+			else:
+				raise Exception("Couldn't load operand 2 for SUB operation")
+			self.registers[destination.value] = val1 - val2
+		else:
+			self.registers[destination.value] -= val1
 
 	# Branches
-	def B(self, label):
-		labelPC = self.program.labels[label]
-		self.pc = labelPC.memoryLocation
+	def B(self, instruction):
+		# Get all the operands
+		label = instruction.operands[0]
 
-	def BNE(self, val1, val2, label):
-		if val1[0] == '#':
-			val1 = int(val1[1:])
+		if label.type != OperandType.LABEL:
+			raise Exception("Invalid label for B operation")
 		else:
-			r1 = self.parseRegister(val1)
-			val1 = int(self.registers[r1])
+			self.pc = label.value.memoryLocation
 
-		if val2[0] == '#':
-			val2 = int(val2[1:])
+	def BNE(self, instruction):
+		# Get all the operands
+		operand0 = instruction.operands[0]
+		operand1 = instruction.operands[1]
+		label = instruction.operands[2]
+
+		# Load operand 0 value
+		if operand0.type == OperandType.REGISTER:
+			val0 = self.registers[operand0.value]
+		elif operand0.type == OperandType.IMMEDIATE:
+			val0 = operand0.value
 		else:
-			r2 = self.parseRegister(val2)
-			val2 = int(self.registers[r2])
+			raise Exception("Couldn't load operand 0 for BEQ operation")
 
-		if val1 != val2:
-			labelPC = self.program.labels[label]
-			self.pc = labelPC.memoryLocation		
-
-	def BEQ(self, val1, val2, label):
-		if val1[0] == '#':
-			val1 = int(val1[1:])
+		# Load operand 1 value
+		if operand1.type == OperandType.REGISTER:
+			val1 = self.registers[operand1.value]
+		elif operand1.type == OperandType.IMMEDIATE:
+			val1 = operand1.value
 		else:
-			r1 = self.parseRegister(val1)
-			val1 = int(self.registers[r1])
+			raise Exception("Couldn't load operand 1 for BEQ operation")
+		
+		# Do the comparison
+		if int(val0) != int(val1):
+			if label.type != OperandType.LABEL:
+				raise Exception("Invalid label for BNE operation")
+			else:
+				self.pc = label.value.memoryLocation
+				if self.arguments.step:
+					print "Branching"		
 
-		if val2[0] == '#':
-			val2 = int(val2[1:])
+	def BEQ(self, instruction):
+		# Get all the operands
+		operand0 = instruction.operands[0]
+		operand1 = instruction.operands[1]
+		label = instruction.operands[2]
+
+		# Load operand 0 value
+		if operand0.type == OperandType.REGISTER:
+			val0 = self.registers[operand0.value]
+		elif operand0.type == OperandType.IMMEDIATE:
+			val0 = operand0.value
 		else:
-			r2 = self.parseRegister(val2)
-			val2 = int(self.registers[r2])
+			raise Exception("Couldn't load operand 0 for BEQ operation")
 
-		if val1 == val2:
-			labelPC = self.program.labels[label]
-			self.pc = labelPC.memoryLocation		
-
-
-	def BLT(self, val1, val2, label):
-		if val1[0] == '#':
-			val1 = int(val1[1:])
+		# Load operand 1 value
+		if operand1.type == OperandType.REGISTER:
+			val1 = self.registers[operand1.value]
+		elif operand1.type == OperandType.IMMEDIATE:
+			val1 = operand1.value
 		else:
-			r1 = self.parseRegister(val1)
-			val1 = int(self.registers[r1])
+			raise Exception("Couldn't load operand 1 for BEQ operation")
+		
+		# Do the comparison
+		if int(val0) == int(val1):
+			if label.type != OperandType.LABEL:
+				raise Exception("Invalid label for BEQ operation")
+			else:
+				self.pc = label.value.memoryLocation
+				if self.arguments.step:
+					print "Branching"	
 
-		if val2[0] == '#':
-			val2 = int(val2[1:])
+
+	def BLT(self, instruction):
+		# Get all the operands
+		operand0 = instruction.operands[0]
+		operand1 = instruction.operands[1]
+		label = instruction.operands[2]
+
+		# Load operand 0 value
+		if operand0.type == OperandType.REGISTER:
+			val0 = self.registers[operand0.value]
+		elif operand0.type == OperandType.IMMEDIATE:
+			val0 = operand0.value
 		else:
-			r2 = self.parseRegister(val2)
-			val2 = int(self.registers[r2])
+			raise Exception("Couldn't load operand 0 for BLT operation")
 
-		if val1 < val2:
-			labelPC = self.program.labels[label]
-			self.pc = labelPC.memoryLocation	
-
-	def BGT(self, val1, val2, label):
-		if val1[0] == '#':
-			val1 = int(val1[1:])
+		# Load operand 1 value
+		if operand1.type == OperandType.REGISTER:
+			val1 = self.registers[operand1.value]
+		elif operand1.type == OperandType.IMMEDIATE:
+			val1 = operand1.value
 		else:
-			r1 = self.parseRegister(val1)
-			val1 = int(self.registers[r1])
+			raise Exception("Couldn't load operand 1 for BLT operation")
+		
+		# Do the comparison
+		if int(val0) < int(val1):
+			if label.type != OperandType.LABEL:
+				raise Exception("Invalid label for BLT operation")
+			else:
+				self.pc = label.value.memoryLocation
+				if self.arguments.step:
+					print "Branching"
 
-		if val2[0] == '#':
-			val2 = int(val2[1:])
+	def BGT(self, instruction):
+		# Get all the operands
+		operand0 = instruction.operands[0]
+		operand1 = instruction.operands[1]
+		label = instruction.operands[2]
+
+		# Load operand 0 value
+		if operand0.type == OperandType.REGISTER:
+			val0 = self.registers[operand0.value]
+		elif operand0.type == OperandType.IMMEDIATE:
+			val0 = operand0.value
 		else:
-			r2 = self.parseRegister(val2)
-			val2 = int(self.registers[r2])
+			raise Exception("Couldn't load operand 0 for BGT operation")
 
-		if val1 > val2:
-			labelPC = self.program.labels[label]
-			self.pc = labelPC.memoryLocation	
+		# Load operand 1 value
+		if operand1.type == OperandType.REGISTER:
+			val1 = self.registers[operand1.value]
+		elif operand1.type == OperandType.IMMEDIATE:
+			val1 = operand1.value
+		else:
+			raise Exception("Couldn't load operand 1 for BGT operation")
+		
+		# Do the comparison
+		if int(val0) > int(val1):
+			if label.type != OperandType.LABEL:
+				raise Exception("Invalid label for BGT operation")
+			else:
+				self.pc = label.value.memoryLocation
+				if self.arguments.step:
+					print "Branching"
 
 	# Other
 	def HALT(self):

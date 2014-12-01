@@ -1,44 +1,66 @@
 class OperandType():
-	REGISTER, IMMEDIATE, ADDRESS = range(3)
+	REGISTER, IMMEDIATE, LABEL = range(3)
 
 class Instruction():
 
-	def __init__(self, line):
+	def __init__(self, line, assembler):
 		self.rawInstruction = line
-		self.cleanInstruction()
+		self.operands = []
+		self.opcode = None
+		self.assembler = assembler
 		self.parseInstruction()
 
-	def cleanInstruction(self):
-		self.rawInstruction = [instruction.strip(',') for instruction in self.rawInstruction]
-		print self.rawInstruction
+	def __str__(self):
+		return ' '.join(self.rawInstruction)
 
 	def parseInstruction(self):
 		self.opcode = self.rawInstruction[0]
-		if self.hasDestinationRegister():
-			self.destinationRegister = self.parseRegister(self.rawInstruction[1])
-		self.operand1 = self.parseValue(self.rawInstruction[2])
+		for operand in self.rawInstruction[1:]:
+			self.operands.append(self.parseValue(operand))
 
 	def parseValue(self, operand):
-		if operand[0] == '#':
-			return Operand(int(r1[1:]), OperandType.IMMEDIATE)
-		elif operand[0] == '[' and r1[-1:] == ']':
-
+		# First check if it's a label
+		labelLookup = self.assembler.labelLookup(operand)
+		if labelLookup != None:
+			return Operand(labelLookup, OperandType.LABEL, True)
+		# Then immediate
+		elif operand[0] == '#':
+			return Operand(int(operand[1:]), OperandType.IMMEDIATE, False)
+		# Then address
+		elif operand[0] == '[' and operand[-1:] == ']':
+			return self.parseAddress(operand)
+		# Then register
+		else:
+			return self.parseRegister(operand)
 
 	def parseRegister(self, reg):
-		newOperand = Operand(int(reg[1:]), OperandType.REGISTER)
+		if reg[0].upper() != 'R':
+			raise Exception("Invalid syntax in instruction: " + reg)
+		newOperand = Operand(int(reg[1:]), OperandType.REGISTER, False)
 		return newOperand
 
-	def hasDestinationRegister(self):
-		destinationOpcodes = ["B", "BLT", "BGT", "BEQ", "BNE", "HALT"]
-		if self.opcode in destinationOpcodes:
-			return False
+	def parseAddress(self, address):
+		address = address.replace(',', '')
+		address = address.replace(']', '')
+		address = address.replace('[', '')
+
+		# First check if it's a label
+		labelLookup = self.assembler.labelLookup(address)
+		if labelLookup != None:
+			return Operand(labelLookup, OperandType.LABEL, True)
+		# Next check if it's an immediate
+		elif address[0] == '#':
+			return Operand(int(address[1:]), OperandType.IMMEDIATE, True)
+	 	# Nect check if it's a register
+		elif address[0] != 'R':
+			return Operand(int(address[1:]), OperandType.REGISTER, True)
+		# Dunno...quit
 		else:
-			return True
+			raise Exception("Invalid syntax in instruction: " + address)
 
 class Operand():
 
-	def __init__(self, value, operandType):
+	def __init__(self, value, operandType, memoryLookup):
 		self.value = value
 		self.type = operandType
-
-
+		self.memoryLookup = memoryLookup
