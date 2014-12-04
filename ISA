@@ -22,24 +22,24 @@ SUB R0, Constant, Constant
 
 B label
 
-BNE R0, R1, Label
-BNE R0, Constant Label
-BNE Constant, R0, Label
-BNE Constant, Constant, Label
+BNE Label, R0, R1
+BNE Label, R0, Constant
+BNE Label, Constant, R0
+BNE Label, Constant, Constant
 
-BEQ R0, R1, Label
-BEQ R0, Constant Label
-BEQ Constant, R0, Label
-BEQ Constant, Constant, Label
+BEQ Label, R0, R1
+BEQ Label, R0, Constant 
+BEQ Label, Constant, R0
+BEQ Label, Constant, Constant
 
-BGT R0, R1, Label
-BGT R0, Constant Label
-BGT Constant, R0, Label
-BGT Constant, Constant, Label
+BGT Label, R0, R1
+BGT Label, R0, Constant
+BGT Label, Constant, R0
+BGT Label, Constant, Constant
 
-BLT R0, R1, Label
-BLT R0, Constant, Label
-BLT Constant, R0, Label
-BLT Constant, Constant, Label
+BLT Label, R0, R1
+BLT Label, R0, Constant
+BLT Label, Constant, R0
+BLT Label, Constant, Constant
 
 HALT

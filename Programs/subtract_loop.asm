@@ -3,7 +3,7 @@ start:
 
 loop:
 	SUB r2, #1
-	BNE r2, #0, loop
+	BNE loop, r2, #0
 
 end:
 	HALT

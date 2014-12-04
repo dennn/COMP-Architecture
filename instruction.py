@@ -6,6 +6,7 @@ class Instruction():
 	def __init__(self, line, assembler):
 		self.rawInstruction = line
 		self.operands = []
+		self.decodedOperands = []
 		self.opcode = None
 		self.assembler = assembler
 		self.parseInstruction()

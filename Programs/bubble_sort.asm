@@ -14,18 +14,18 @@ main:
 	ADD R5, #10
 
 loop:
-	BLT R2, #0, end
+	BLT end, R2, #0
 
 	LDR R6, [values], R3
 	LDR R7, [values], R4
 
-	BGT R6, R7, swapValues
+	BGT swapValues, R6, R7
 
 swapRest:
 	ADD R3, R3, #1
 	ADD R4, R4, #1
 
-	BLT R4, R5, loop
+	BLT loop, R4, R5
 	ADD R3, R0, #0
 	ADD R4, R0, #1
 	SUB R2, #1
