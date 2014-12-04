@@ -10,12 +10,14 @@ class Instruction():
 		self.opcode = None
 		self.assembler = assembler
 		self.parseInstruction()
+		self.latency = 1
 
 	def __str__(self):
 		return ' '.join(self.rawInstruction)
 
 	def parseInstruction(self):
 		self.opcode = self.rawInstruction[0]
+		self.setLatency()
 		for operand in self.rawInstruction[1:]:
 			self.operands.append(self.parseValue(operand))
 
