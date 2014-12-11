@@ -7,10 +7,12 @@ class Instruction():
 		self.rawInstruction = line
 		self.operands = []
 		self.decodedOperands = []
+		self.destinationRegister = None
 		self.opcode = None
 		self.assembler = assembler
 		self.parseInstruction()
 		self.latency = 1
+		self.result = None
 
 	def __str__(self):
 		return ' '.join(self.rawInstruction)
@@ -20,6 +22,30 @@ class Instruction():
 		self.setLatency()
 		for operand in self.rawInstruction[1:]:
 			self.operands.append(self.parseValue(operand))
+
+	def setLatency(self):
+		opcode = self.opcode
+
+		if opcode == 'LDR':
+			self.latency = 1
+		elif opcode == 'STR':
+			self.latency = 1
+		elif opcode == 'ADD':
+			self.latency = 1
+		elif opcode == 'SUB':
+			self.latency = 1
+		elif opcode == 'B':
+			self.latency = 1
+		elif opcode == 'BNE':
+			self.latency = 1
+		elif opcode == 'BEQ':
+			self.latency = 1
+		elif opcode == 'BLT':
+			self.latency = 1
+		elif opcode == 'BGT':
+			self.latency = 1
+		elif opcode == 'HALT':
+			self.latency = 1
 
 	def parseValue(self, operand):
 		# First check if it's a label
@@ -60,6 +86,10 @@ class Instruction():
 		# Dunno...quit
 		else:
 			raise Exception("Invalid syntax in instruction: " + address)
+
+	def getOperand(self, operandIndex):
+   		if len(self.operands) > operandIndex: 
+   			return self.operands[operandIndex]
 
 class Operand():
 

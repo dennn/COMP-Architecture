@@ -9,13 +9,9 @@ STR R0, [Immediate or Label], Offset | MEM[(Immediate or Label) + Offset] = R0
 STR Constant, [Immediate or Label] | MEM[Immediate or Label] = Constant
 STR Constant, [Immediate or Label], Offset | MEM[(Immediate or Label) + Offset] = Constant
 
-ADD R0, R1 | R0 = R0 + R1
-ADD R0, Constant | R0 = R0 + Constant
 ADD R0, R1, Constant | R0 = R1 + Constant
 ADD R0, R1, R2 | R0 = R1 + R2
 ADD R0, Constant, Constant
-SUB R0, R1 | R0 = R0 - R1
-SUB R0, Constant | R0 = R0 - Constant
 SUB R0, R1, Constant | R0 = R1 - Constant
 SUB R0, R1, R2 | R0 = R1 - R2
 SUB R0, Constant, Constant

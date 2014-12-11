@@ -3,10 +3,10 @@ from instruction import Instruction
 
 class Assembler():
 	
-	def __init__(self, cpu, args):
+	def __init__(self, memory, args):
 		self.instructions = []
 		self.labels = {}
-		self.cpu = cpu
+		self.memory = memory
 		self.arguments = args
 		self.readFile()
 
@@ -41,12 +41,12 @@ class Assembler():
 				self.labels[label.labelString] = label
 				continue
 			elif operation == '.data':
-				self.cpu.memory.store(instructionCount, instructionList[1])
+				self.memory.store(instructionCount, instructionList[1])
 			else:
 				tempInstructions.append(instructionList)
 			instructionCount += 1
 
-		# Now conver the instructions to actual instructions
+		# Now convert the instructions to actual instructions
 		for instruction in tempInstructions:
 			newInstruction = Instruction(instruction, self)
 			self.instructions.append(newInstruction)

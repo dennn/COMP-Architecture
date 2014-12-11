@@ -1,37 +1,20 @@
 from processor import Processor
 from assembler import Assembler
 from instructionBuffer import InstructionBuffer
-from fetcher import FetchUnit
-from decoder import DecodeUnit
+from memory import Memory
+
 import argparse
 
 class Simulator():
 
 	def __init__(self, args):
 		self.args = args
-		self.initProcessor()
-		self.initPipelineUnits()
-
-	def initProcessor(self):
-		self.assembledProgram = None
-		self.clockCycles = 0
-		self.pc = 0
 		self.memory = Memory()
-		self.registers = [0] * ARCH
-
-	def initPipelineUnits(self):
-		self.fetchUnit = FetchUnit(self, self.assembledProgram.instructions)
-		self.decodeUnit = DecodeUnit(self)
-
-	def clockCycle(self):
-		self.fetchUnit.clockTick()
-		self.clockCycles += 1
 
 	def run(self):
-		cpu = Processor(args)
-		self.initPipelineUnits()
-		self.assembledProgram = Assembler(cpu, args)
-		self.initInstructionBuffer()
+		self.assembledProgram = Assembler(self.memory, args)
+		self.processor = Processor(self, self.memory, args)
+		self.processor.run(self.assembledProgram)
 	
 if __name__ == '__main__':
 	# Parse the command line options
