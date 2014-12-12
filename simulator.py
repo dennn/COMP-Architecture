@@ -1,6 +1,5 @@
 from processor import Processor
 from assembler import Assembler
-from instructionBuffer import InstructionBuffer
 from memory import Memory
 
 import argparse

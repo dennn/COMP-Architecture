@@ -5,13 +5,13 @@
 
 main: 
 # outer counter
-	ADD R2, #10
+	ADD R2, R0, #10
 # inner counter 1
-	ADD R3, #0
+	ADD R3, R0, #0
 # inner counter 2
-	ADD R4, #1
+	ADD R4, R0, #1
 # number of elements
-	ADD R5, #10
+	ADD R5, R0, #10
 
 loop:
 	BLT end, R2, #0

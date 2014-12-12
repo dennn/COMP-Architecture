@@ -1,5 +1,5 @@
 from sets import Set
-from instruction import Instruction
+from Instructions.instruction import Instruction
 
 class Assembler():
 	
@@ -16,7 +16,6 @@ class Assembler():
 			self.parse(programFile)
 		except IOError:
 			raise Exception("Error Loading file")
-
 		else:
 			programFile.close()
 
