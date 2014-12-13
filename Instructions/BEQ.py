@@ -1,9 +1,11 @@
-import instruction
+from Instructions.instruction import *
 
-class BEQ(instruction):
+class BEQ(Instruction):
 
 	def __init__(self, currentInstruction):
 		self.opcode = currentInstruction.opcode
+		self.rawInstruction = currentInstruction.rawInstruction
+		self.operands = currentInstruction.operands
 		self.decodedOperands = []
 		self.destinationRegister = None
 		self.result = None

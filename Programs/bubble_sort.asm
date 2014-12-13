@@ -28,7 +28,7 @@ swapRest:
 	BLT loop, R4, R5
 	ADD R3, R0, #0
 	ADD R4, R0, #1
-	SUB R2, #1
+	SUB R2, R2, #1
 	B loop
 
 swapValues:

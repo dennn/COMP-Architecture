@@ -2,6 +2,7 @@ import sys
 from memory import *
 from config import *
 from Instructions import *
+from Instructions.instruction import InstructionType
 import Queue
 
 class Processor:
@@ -21,7 +22,8 @@ class Processor:
 	def run(self, assembledProgram):
 		self.program = assembledProgram
 		while self.continueRunning == True:
-			print "---------------------"
+			if self.simulator.args.step:
+				print "---------------------"
 			self.printRegisters()
 			self.writeBack()
 			self.execute()
@@ -34,12 +36,13 @@ class Processor:
 
 			if self.simulator.args.step:
 				self.printRegisters()
-				self.memory.printMemory()
+				self.printMemory()
 				raw_input("\n Press enter to continue..")	
 
 		print "Finished executing. Cycles: " + str(self.clockCycles)
-		if self.simulator.args.step:
-			self.memory.printMemory()			
+		if self.simulator.args.step == False:
+			self.printRegisters(True)
+			self.printMemory(True)		
 
 	def checkForEmptyQueues(self):
 		if len(self.instructionsToExecute) == 0 and \
@@ -49,11 +52,15 @@ class Processor:
 
 		return True
 
-	def printRegisters(self):
-		if self.arguments.step:
+	def printRegisters(self, forced=False):
+		if self.arguments.step or forced:
 			for idx, register in enumerate(self.registers):
 				print "R" + str(idx) + "=" + str(register) + ", "
 			print "\n"
+
+	def printMemory(self, forced=False):
+		if self.arguments.step or forced:
+			self.memory.printMemory()
 
 ###################################################
 ## FETCH STAGE
@@ -88,15 +95,24 @@ class Processor:
 			print "DECODE STAGE: Decoding instruction " + str(instructionToDecode) + "\n"
 
 		decodedInstruction = instructionToDecode.decode(self)
+		opcode = decodedInstruction.opcode
 
 		if self.dependenciesExist(decodedInstruction) == False:
-			self.instructionsToExecute.append(decodedInstruction)
-			return
+			# If we have a branch, let's try and take it as early as possible 
+			if decodedInstruction.instructionType == InstructionType.BRANCH:	
+				if decodedInstruction.willTakeBranch(self) == True:
+					if self.simulator.args.step:
+						print "DECODE STAGE: Branching\n"
+
+					# Flush all the buffers
+					del self.instructionsToDecode[:]
+				#	del self.instructionsToExecute[:]
+				#	del self.instructionsToWriteback[:]
+			else:
+				self.instructionsToExecute.append(decodedInstruction)
 		else:
 			if self.simulator.args.step:
 				print "**** DEPENDENCY: Dependencies exist, stalling *****\n" 
- 		# If we have a branhc, let's try and take it as early as possible 
-		#if opcode == 'B' or opcode == 'BNE' or opcode == 'BEQ' or opcode == 'BLT' or opcode == 'BGT':		
 
 	def dependenciesExist(self, instruction):
 

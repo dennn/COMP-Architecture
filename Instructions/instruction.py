@@ -40,8 +40,10 @@ class Instruction():
 			return self.decodeLDR(processor)
 		elif self.opcode == 'STR':
 			return self.decodedSTR(processor)
+		elif self.opcode == 'HALT':
+			return self.decodedHALT()
 		else:
-			raise Exception("Unknwon opcode" + opcode)
+			raise Exception("Unknown opcode " + self.opcode)
 
 	# Instruction parsing
 	def parseInstruction(self):
@@ -98,7 +100,7 @@ class Instruction():
 
 		# Check we have 3 operands
 		if len(self.operands) != 3:
-			raise Exception("Not enough operands for instruction " + str(instruction))
+			raise Exception("Not enough operands for instruction " + str(self))
 
 		# Get all the operands
 		destination = self.operands[0]
@@ -110,14 +112,14 @@ class Instruction():
 		elif operand1.type == OperandType.IMMEDIATE:
 			val1 = operand1.value
 		else:
-			raise Exception("Couldn't load operand 1 for instruction " + str(instruction))
+			raise Exception("Couldn't load operand 1 for instruction " + str(self))
 
 		if operand2.type == OperandType.REGISTER:
 			val2 = processor.registers[operand2.value]
 		elif operand2.type == OperandType.IMMEDIATE:
 			val2 = operand2.value
 		else:
-			raise Exception("Couldn't load operand 2 for instruction " + str(instruction))
+			raise Exception("Couldn't load operand 2 for instruction " + str(self))
 
 		# Put the decoded operands into the instruction
 		if self.opcode == 'ADD':
@@ -127,6 +129,8 @@ class Instruction():
 			decodedInstruction.decodedOperands.extend([destination, val1, val2])
 			decodedInstruction.destinationRegister = destination.value
 		elif self.opcode == 'SUB':
+			from Instructions.SUB import SUB
+
 			decodedInstruction = SUB(self)
 			decodedInstruction.decodedOperands.extend([destination, val1, val2])
 			decodedInstruction.destinationRegister = destination.value
@@ -142,7 +146,7 @@ class Instruction():
 		label = self.operands[0]
 
 		if label.type != OperandType.LABEL:
-			raise Exception("Invalid label for " + instruction.opcode + " operation")
+			raise Exception("Invalid label for " + self.opcode + " operation")
 
 		if len(self.operands) > 1:
 			# Get all the operands
@@ -155,7 +159,7 @@ class Instruction():
 			elif operand0.type == OperandType.IMMEDIATE:
 				val1 = operand0.value
 			else:
-				raise Exception("Couldn't load operand 0 for " + instruction.opcode + " operation")
+				raise Exception("Couldn't load operand 0 for " + self.opcode + " operation")
 
 			# Load operand 1 value
 			if operand1.type == OperandType.REGISTER:
@@ -163,13 +167,17 @@ class Instruction():
 			elif operand1.type == OperandType.IMMEDIATE:
 				val2 = operand1.value
 			else:
-				raise Exception("Couldn't load operand 1 for " + instruction.opcode + " operation")
+				raise Exception("Couldn't load operand 1 for " + self.opcode + " operation")
 
 		# Put the decoded operands into the instruction
 		if self.opcode == 'B':
+			from Instructions.B import B
+
 			decodedInstruction = B(self)
 			decodedInstruction.decodedOperands.append(label)
 		elif self.opcode == 'BEQ':
+			from Instructions.BEQ import BEQ
+
 			decodedInstruction = BEQ(self)
 			decodedInstruction.decodedOperands.append(label)
 			if val1 is not None:
@@ -179,6 +187,8 @@ class Instruction():
 				val2 = int(val2)
 				decodedInstruction.decodedOperands.append(val2)
 		elif self.opcode == 'BNE':
+			from Instructions.BNE import BNE
+
 			decodedInstruction = BNE(self)
 			decodedInstruction.decodedOperands.append(label)
 			if val1 is not None:
@@ -188,6 +198,8 @@ class Instruction():
 				val2 = int(val2)
 				decodedInstruction.decodedOperands.append(val2)
 		elif self.opcode == 'BGT':
+			from Instructions.BGT import BGT
+
 			decodedInstruction = BGT(self)
 			decodedInstruction.decodedOperands.append(label)
 			if val1 is not None:
@@ -197,6 +209,8 @@ class Instruction():
 				val2 = int(val2)
 				decodedInstruction.decodedOperands.append(val2)
 		elif self.opcode == 'BLT':
+			from Instructions.BLT import BLT
+
 			decodedInstruction = BLT(self)
 			decodedInstruction.decodedOperands.append(label)
 			if val1 is not None:
@@ -285,4 +299,11 @@ class Instruction():
 		if address is not None:
 			decodedInstruction.decodedOperands.append(address)
 
+		return decodedInstruction
+
+	# Decoded instruction of format HALT
+	def decodedHALT(self):
+		from Instructions.HALT import HALT
+
+		decodedInstruction = HALT(self)
 		return decodedInstruction

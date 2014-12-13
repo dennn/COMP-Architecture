@@ -1,9 +1,11 @@
-import instruction
+from Instructions.instruction import *
 
-class BNE(instruction):
+class BNE(Instruction):
 
 	def __init__(self, currentInstruction):
 		self.opcode = currentInstruction.opcode
+		self.rawInstruction = currentInstruction.rawInstruction
+		self.operands = currentInstruction.operands
 		self.decodedOperands = []
 		self.destinationRegister = None
 		self.result = None
