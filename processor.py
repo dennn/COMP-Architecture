@@ -158,10 +158,6 @@ class Processor:
 
 		self.instructionsToWriteback.append(instruction)		
 
-	# Other
-	def HALT(self):
-		print "Halting"
-
 ###################################################
 ## WRITEBACK STAGE
 ###################################################
