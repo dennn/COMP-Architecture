@@ -1,6 +1,6 @@
 from Instructions.instruction import *
 
-class STR(Instruction):
+class DIV(Instruction):
 
 	def __init__(self, currentInstruction):
 		self.opcode = currentInstruction.opcode
@@ -10,14 +10,13 @@ class STR(Instruction):
 		self.destinationRegister = None
 		self.result = None
 		self.latency = 4
-		self.instructionType = InstructionType.MEMORY
+		self.instructionType = InstructionType.ALU
 
 	def execute(self, processor):
-		# Get all the operands
-		value = self.decodedOperands[0]
-		destination = self.decodedOperands[1]
-		
-		processor.memory.store(destination, value)
+		self.result = self.decodedOperands[1] / self.decodedOperands[2]
 
 	def writeback(self, processor):
-		pass
+		if self.result == None:
+			raise Exception("Result hasn't yet been calculated. Has execute been called?")
+
+		processor.registers[self.destinationRegister] = self.result

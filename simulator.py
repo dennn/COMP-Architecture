@@ -12,7 +12,7 @@ class Simulator():
 
 	def run(self):
 		self.assembledProgram = Assembler(self.memory, args)
-		self.processor = Processor(self, self.memory, args)
+		self.processor = Processor(self.memory, args)
 		self.processor.run(self.assembledProgram)
 	
 if __name__ == '__main__':

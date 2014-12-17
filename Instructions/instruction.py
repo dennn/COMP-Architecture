@@ -32,7 +32,7 @@ class Instruction():
 
 	# Do the actual decoding
 	def decode(self, processor):
-		if self.opcode == 'ADD' or self.opcode == 'SUB':
+		if self.opcode == 'ADD' or self.opcode == 'SUB' or self.opcode == 'MUL' or self.opcode == 'DIV':
 			return self.decodeTypeOne(processor)
 		elif self.opcode == 'B' or self.opcode == 'BEQ' or self.opcode == 'BNE' or self.opcode == 'BGT' or self.opcode == 'BLT':
 			return self.decodeTypeTwo(processor)
@@ -132,6 +132,18 @@ class Instruction():
 			from Instructions.SUB import SUB
 
 			decodedInstruction = SUB(self)
+			decodedInstruction.decodedOperands.extend([destination, val1, val2])
+			decodedInstruction.destinationRegister = destination.value
+		elif self.opcode == 'MUL':
+			from Instructions.MUL import MUL
+
+			decodedInstruction = MUL(self)
+			decodedInstruction.decodedOperands.extend([destination, val1, val2])
+			decodedInstruction.destinationRegister = destination.value
+		elif self.opcode == 'DIV':
+			from Instructions.DIV import DIV
+
+			decodedInstruction = DIV(self)
 			decodedInstruction.decodedOperands.extend([destination, val1, val2])
 			decodedInstruction.destinationRegister = destination.value
 		else:

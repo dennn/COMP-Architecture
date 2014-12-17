@@ -9,7 +9,7 @@ class LDR(Instruction):
 		self.decodedOperands = []
 		self.destinationRegister = None
 		self.result = None
-		self.latency = 1
+		self.latency = 4
 		self.instructionType = InstructionType.MEMORY
 
 	def execute(self, processor):
