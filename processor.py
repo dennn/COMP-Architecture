@@ -5,6 +5,7 @@ from memory import *
 from config import *
 from Instructions import *
 from Instructions.instruction import InstructionType
+from Instructions.instruction import OperandType
 from Units import *
 
 class Processor:
@@ -28,15 +29,15 @@ class Processor:
 
 	def initUnits(self):
 		# Units
-		self.ALUExecutionUnits = [ALUExecutionUnit(self, i) for i in range(NUMBER_EXECUTION_UNITS)]
-		self.LSExecutionUnits = [LSExecutionUnit(self, i) for i in range(NUMBER_EXECUTION_UNITS)]
+		self.ALUExecutionUnits = [ALUExecutionUnit(self, i) for i in range(0, NUMBER_EXECUTION_UNITS)]
+		self.LSExecutionUnits = [LSExecutionUnit(self, i) for i in range(0, NUMBER_EXECUTION_UNITS)]
 		self.branchExecutionUnit = BranchExecutionUnit(self)
 		self.writebackUnit = WriteBackUnit(self)
 
 	def initBuffers(self):
 		# Buffers
-		self.ALUInstructionsToExecute = [[] for i in range(NUMBER_EXECUTION_UNITS)]
-		self.LSInstructionsToExecute = [[] for i in range(NUMBER_EXECUTION_UNITS)]
+		self.ALUInstructionsToExecute = [[] for i in range(0, NUMBER_EXECUTION_UNITS)]
+		self.LSInstructionsToExecute = [[] for i in range(0, NUMBER_EXECUTION_UNITS)]
 		self.instructionsToDecode = []
 		self.instructionsToWriteback = []
 
@@ -80,10 +81,16 @@ class Processor:
 
 		# Check the execution units
 		for i in range(NUMBER_EXECUTION_UNITS):
+			# Check that the ALUs have no more instructions to execute, and aren't currently executing
 			if len(self.ALUInstructionsToExecute[i]) != 0:
 				queuesEmpty = False
+			if self.ALUExecutionUnits[i].currentInstruction != None:
+				queuesEmpty = False
+			# Check that the LS units have no more instructions to execute, and aren't currently executing
 			if len(self.LSInstructionsToExecute[i]) != 0:
 			   	queuesEmpty = False
+			if self.LSExecutionUnits[i].currentInstruction != None: 
+				queuesEmpty = False
 
 		# Check instructions to decode
 		if decodeIncluded == True:
@@ -227,8 +234,13 @@ class Processor:
 			if innerInstruction.destinationRegister == None:
 				continue
 
-			if (sourceRegister1 != None and sourceRegister1.value == innerInstruction.destinationRegister) or (sourceRegister2 != None and sourceRegister2.value == innerInstruction.destinationRegister):
-				return True
+			if (sourceRegister1 != None and \
+				sourceRegister1.value == innerInstruction.destinationRegister and \
+				sourceRegister1.type == OperandType.REGISTER) or \
+				(sourceRegister2 != None and \
+				sourceRegister2.value == innerInstruction.destinationRegister and \
+				sourceRegister2.type == OperandType.REGISTER):
+					return True
 
 		return False
 
