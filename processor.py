@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
-
+from __future__ import division
 import sys
 from memory import *
-from config import *
+import config
 from Instructions import *
 from Instructions.instruction import InstructionType
 from Instructions.instruction import OperandType
@@ -29,15 +29,15 @@ class Processor:
 
 	def initUnits(self):
 		# Units
-		self.ALUExecutionUnits = [ALUExecutionUnit(self, i) for i in range(0, NUMBER_EXECUTION_UNITS)]
-		self.LSExecutionUnits = [LSExecutionUnit(self, i) for i in range(0, NUMBER_EXECUTION_UNITS)]
+		self.ALUExecutionUnits = [ALUExecutionUnit(self, i) for i in range(config.NUMBER_EXECUTION_UNITS)]
+		self.LSExecutionUnits = [LSExecutionUnit(self, i) for i in range(config.NUMBER_EXECUTION_UNITS)]
 		self.branchExecutionUnit = BranchExecutionUnit(self)
 		self.writebackUnit = WriteBackUnit(self)
 
 	def initBuffers(self):
 		# Buffers
-		self.ALUInstructionsToExecute = [[] for i in range(0, NUMBER_EXECUTION_UNITS)]
-		self.LSInstructionsToExecute = [[] for i in range(0, NUMBER_EXECUTION_UNITS)]
+		self.ALUInstructionsToExecute = [[] for i in range(config.NUMBER_EXECUTION_UNITS)]
+		self.LSInstructionsToExecute = [[] for i in range(config.NUMBER_EXECUTION_UNITS)]
 		self.instructionsToDecode = []
 		self.instructionsToWriteback = []
 
@@ -52,12 +52,12 @@ class Processor:
 			self.writeBack()
 			self.execute()
 
-			for i in range(0, NUMBER_EXECUTION_UNITS):
+			for i in range(config.NUMBER_EXECUTION_UNITS):
 				result = self.decode(i)
 				if result is not True:
 					break
 
-			for i in range(0, NUMBER_EXECUTION_UNITS):
+			for i in range(config.NUMBER_EXECUTION_UNITS):
 				result = self.fetch(i)
 				if result is not True:
 					break
@@ -71,7 +71,7 @@ class Processor:
 				self.printMemory()
 				raw_input("\n Press enter to continue..")	
 
-		print "Finished executing. Cycles: " + str(self.clockCycles)
+		self.printStats()
 		if self.arguments.step == False:
 			self.printRegisters(True)
 			self.printMemory(True)		
@@ -80,7 +80,7 @@ class Processor:
 		queuesEmpty = True
 
 		# Check the execution units
-		for i in range(NUMBER_EXECUTION_UNITS):
+		for i in range(config.NUMBER_EXECUTION_UNITS):
 			# Check that the ALUs have no more instructions to execute, and aren't currently executing
 			if len(self.ALUInstructionsToExecute[i]) != 0:
 				queuesEmpty = False
@@ -113,6 +113,14 @@ class Processor:
 	def printMemory(self, forced=False):
 		if self.arguments.step or forced:
 			self.memory.printMemory()
+
+	def printStats(self):
+		print "Finished executing. Stats:"
+		print "---------------------------"
+		print "Cycles: " + str(self.clockCycles)
+		print "Instructions executed: " + str(self.instructionsExecuted)
+		print "Cycles per instruction: " + str(self.clockCycles/self.instructionsExecuted)
+		print "Instructions per cycle: " + str(self.instructionsExecuted/self.clockCycles)
 
 ###################################################
 ## FETCH STAGE
@@ -165,7 +173,7 @@ class Processor:
 		blocked = False
 
 		# Check against LS Units
-		for i in range(NUMBER_EXECUTION_UNITS):
+		for i in range(config.NUMBER_EXECUTION_UNITS):
 			if self.dependenciesExist(self.LSInstructionsToExecute[i], decodedInstruction) == True:
 				blocked = True
 				break
@@ -176,7 +184,7 @@ class Processor:
 
 		# Check against ALU units
 		if blocked == False:
-			for i in range(NUMBER_EXECUTION_UNITS):
+			for i in range(config.NUMBER_EXECUTION_UNITS):
 				if self.dependenciesExist(self.ALUInstructionsToExecute[i], decodedInstruction) == True:
 					blocked = True
 					break
@@ -250,7 +258,7 @@ class Processor:
 
 	def execute(self):
 		# Call execute() on LS and ALU units
-		for i in range(0, NUMBER_EXECUTION_UNITS):
+		for i in range(config.NUMBER_EXECUTION_UNITS):
 			self.ALUExecutionUnits[i].execute()
 			self.LSExecutionUnits[i].execute()
 
