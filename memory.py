@@ -24,4 +24,4 @@ class Memory:
 		print		
 
 	def reset(self):
-		self.data = [0] * pow(2, config.ARCH)
+		self.data = [0] * pow(2, config.MEMORY_BIT)

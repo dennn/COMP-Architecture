@@ -15,7 +15,7 @@ class Processor:
 		self.arguments = arguments
 		# Memory and Registers
 		self.memory = memory
-		self.registers = [0] * config.ARCH
+		self.registers = [0] * config.REGISTERS
 
 		self.initInternals()
 		self.initUnits()
@@ -24,6 +24,7 @@ class Processor:
 	def initInternals(self):
 		# Processor Status
 		self.pc = 0
+		self.stalls = 0
 		self.clockCycles = 0
 		self.instructionsExecuted = 0
 		self.continueRunning = True
@@ -131,6 +132,7 @@ class Processor:
 		print "Cycles: " + str(self.clockCycles)
 		print "Instructions executed: " + str(self.instructionsExecuted)
 		print "Cycles per instruction: " + str(self.clockCycles/self.instructionsExecuted)
+		print "Stalls: " + str(self.stalls)
 
 ###################################################
 ## FETCH STAGE
@@ -178,6 +180,7 @@ class Processor:
 
 		if decodedInstruction.opcode == 'HALT' and self.checkForEmptyQueues(decodeIncluded=False) == False:
 			print "DECODE STAGE " + str(unitID) + ": Can't deal with HALT just yet"
+			self.stalls += 1
 			return 
 
 		blockingInstruction = None
@@ -235,6 +238,7 @@ class Processor:
 		else:
 			if self.arguments.step:
 				print "DECODE STAGE " + str(unitID) + ": Dependencies exist, stalling" 
+			self.stalls += 1
 		
 		return False
 

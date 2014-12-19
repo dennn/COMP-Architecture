@@ -5,13 +5,13 @@
 
 main: 
 # outer counter
-	ADD R2, R0, #10
+	ADD R2, R0, #3
 # inner counter 1
 	ADD R3, R0, #0
 # inner counter 2
 	ADD R4, R0, #1
 # number of elements
-	ADD R5, R0, #10
+	ADD R5, R0, #3
 
 loop:
 	BLT end, R2, #0
@@ -43,10 +43,10 @@ values:
 	.data 12
 	.data 6
 	.data 16
-	.data 4
-	.data 3
-	.data 2
-	.data 20
-	.data 23
-	.data -1
-	.data 14
+#	.data 4
+#	.data 3
+#	.data 2
+#	.data 20
+#	.data 23
+#	.data -1
+#	.data 14
