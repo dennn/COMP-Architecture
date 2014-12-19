@@ -11,7 +11,7 @@ class Operand():
 		self.type = operandType
 		self.memoryLookup = memoryLookup
 
-class Instruction():
+class Instruction(object):
 
 	def __init__(self, line, assembler):
 		self.rawInstruction = line
@@ -28,7 +28,16 @@ class Instruction():
 		pass 
 
 	def writeback(self, processor):
-		pass
+		for listener in self.listeners:
+			listener.handleWriteback(self)
+
+	# Writeback listeners
+	def addListener(self, listener):
+		self.listeners.append(listener)
+
+	def removeListener(self, listener):
+		if listener in self.listeners:
+			self.listeners.remove(listener)
 
 	# Do the actual decoding
 	def decode(self, processor):
@@ -120,6 +129,9 @@ class Instruction():
 			val2 = operand2.value
 		else:
 			raise Exception("Couldn't load operand 2 for instruction " + str(self))
+
+		val1 = int(val1)
+		val2 = int(val2)
 
 		# Put the decoded operands into the instruction
 		if self.opcode == 'ADD':

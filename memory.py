@@ -1,5 +1,5 @@
-from config import *
 import sys
+import config
 
 class Memory:
 
@@ -24,4 +24,4 @@ class Memory:
 		print		
 
 	def reset(self):
-		self.data = [0] * pow(2, ARCH)
+		self.data = [0] * pow(2, config.ARCH)

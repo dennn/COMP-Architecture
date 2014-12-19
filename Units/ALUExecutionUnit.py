@@ -17,7 +17,7 @@ class ALUExecutionUnit():
 
 		# Get the next Instruction
 		if self.currentInstruction == None:
-			self.currentInstruction = instructions.pop(0)
+			self.currentInstruction = instructions[0]
 
 		self.cycles += 1
 
@@ -29,6 +29,8 @@ class ALUExecutionUnit():
 		if self.cycles == self.currentInstruction.latency:
 			if self.processor.arguments.step:
 				print "ALU UNIT" + str(self.ID) + ": Executing instruction " + str(self.currentInstruction)
+			if self.currentInstruction in self.processor.ALUInstructionsToExecute[self.ID]:
+				self.processor.ALUInstructionsToExecute[self.ID].remove(self.currentInstruction)
 			# And execute it
 			self.currentInstruction.execute(self.processor)
 			# Add it to writeback

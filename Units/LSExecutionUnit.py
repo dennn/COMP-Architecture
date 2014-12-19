@@ -18,7 +18,7 @@ class LSExecutionUnit():
 
 		# Get the next Instruction
 		if self.currentInstruction == None:
-			self.currentInstruction = instructions.pop(0)
+			self.currentInstruction = instructions[0]
 
 		self.cycles += 1
 
@@ -30,6 +30,8 @@ class LSExecutionUnit():
 		if self.cycles == self.currentInstruction.latency:
 			if self.processor.arguments.step:
 				print "LS UNIT" + str(self.ID) + ": Executing instruction " + str(self.currentInstruction)
+			if self.currentInstruction in self.processor.LSInstructionsToExecute[self.ID]:
+				self.processor.LSInstructionsToExecute[self.ID].remove(self.currentInstruction)
 			# And execute it
 			self.currentInstruction.execute(self.processor)
 			# Add it to writeback

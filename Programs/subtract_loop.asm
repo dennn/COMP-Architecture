@@ -1,3 +1,8 @@
+###############################################
+# Program to constantly subtract one from a 
+# number until 0 is reached
+###############################################
+
 start:
 	LDR r2, #10
 

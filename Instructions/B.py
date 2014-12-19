@@ -18,8 +18,12 @@ class B(Instruction):
 	def writeback(self, processor):
 		raise Exception("We shouldn't be calling writeback on a branch instruction")
 
-	def willTakeBranch(self, processor):
-		processor.pc = self.decodedOperands[0].value.memoryLocation
+	def shouldBranch(self):
 		return True
+
+	def willTakeBranch(self, processor):
+		if self.shouldBranch() == True:
+			processor.pc = self.decodedOperands[0].value.memoryLocation
+			return True
 
 

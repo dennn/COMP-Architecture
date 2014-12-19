@@ -1,3 +1,9 @@
+###############################################
+# Program to test superscalar features
+# The 3rd ALU operation should finish before 
+# the 2nd
+###############################################
+
 start: 
 	LDR r2, #10
 	LDR r3, #5

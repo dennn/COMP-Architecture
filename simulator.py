@@ -27,6 +27,7 @@ if __name__ == '__main__':
 	parser.add_argument('-s','--step', action="store_true", help='Whether to step through the program', default=False)
 	parser.add_argument('-f','--file', help="The file to execute", required=True)
 	parser.add_argument('-e', '--exeUnits', type=int, help="The number of execution units")
+	parser.add_argument('-b', '--branchpredictor', action="store_true", help="Whether to turn on branch prediction", default=False)
 	args = parser.parse_args()
 
 	# Load the file

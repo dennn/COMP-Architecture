@@ -3,6 +3,7 @@ from Instructions.instruction import *
 class BLT(Instruction):
 
 	def __init__(self, currentInstruction):
+		self.listeners = []
 		self.opcode = currentInstruction.opcode
 		self.rawInstruction = currentInstruction.rawInstruction
 		self.operands = currentInstruction.operands
@@ -18,9 +19,15 @@ class BLT(Instruction):
 	def writeback(self, processor):
 		raise Exception("We shouldn't be calling writeback on a branch instruction")
 
+	def shouldBranch(self):
+		if self.decodedOperands[1] < self.decodedOperands[2]:
+			return True
+
+		return False		
+
 	def willTakeBranch(self, processor):
 		# Do the comparison
-		if self.decodedOperands[1] < self.decodedOperands[2]:
+		if self.shouldBranch() == True:
 			processor.pc = self.decodedOperands[0].value.memoryLocation
 			return True
 

@@ -3,6 +3,7 @@ from Instructions.instruction import *
 class SUB(Instruction):
 
 	def __init__(self, currentInstruction):
+		self.listeners = []
 		self.opcode = currentInstruction.opcode
 		self.rawInstruction = currentInstruction.rawInstruction
 		self.operands = currentInstruction.operands
@@ -16,6 +17,8 @@ class SUB(Instruction):
 		self.result = self.decodedOperands[1] - self.decodedOperands[2]
 
 	def writeback(self, processor):
+		super(SUB, self).writeback(processor)
+
 		if self.result == None:
 			raise Exception("Result hasn't yet been calculated. Has execute been called?")
 

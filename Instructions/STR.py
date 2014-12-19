@@ -3,6 +3,7 @@ from Instructions.instruction import *
 class STR(Instruction):
 
 	def __init__(self, currentInstruction):
+		self.listeners = []
 		self.opcode = currentInstruction.opcode
 		self.rawInstruction = currentInstruction.rawInstruction
 		self.operands = currentInstruction.operands
@@ -20,4 +21,4 @@ class STR(Instruction):
 		processor.memory.store(destination, value)
 
 	def writeback(self, processor):
-		pass
+		super(STR, self).writeback(processor)

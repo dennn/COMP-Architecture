@@ -1,8 +1,9 @@
 # -*- coding: utf-8 -*-
 from __future__ import division
 import sys
-from memory import *
 import config
+from memory import *
+from branchpredictor import *
 from Instructions import *
 from Instructions.instruction import InstructionType
 from Instructions.instruction import OperandType
@@ -14,7 +15,7 @@ class Processor:
 		self.arguments = arguments
 		# Memory and Registers
 		self.memory = memory
-		self.registers = [0] * ARCH
+		self.registers = [0] * config.ARCH
 
 		self.initInternals()
 		self.initUnits()
@@ -31,7 +32,10 @@ class Processor:
 		# Units
 		self.ALUExecutionUnits = [ALUExecutionUnit(self, i) for i in range(config.NUMBER_EXECUTION_UNITS)]
 		self.LSExecutionUnits = [LSExecutionUnit(self, i) for i in range(config.NUMBER_EXECUTION_UNITS)]
-		self.branchExecutionUnit = BranchExecutionUnit(self)
+		self.branchPredictor = None
+		if self.arguments.branchpredictor == True:
+			self.branchPredictor = BranchPredictor(self)
+		self.branchExecutionUnit = BranchExecutionUnit(self, self.branchPredictor)
 		self.writebackUnit = WriteBackUnit(self)
 
 	def initBuffers(self):
@@ -103,6 +107,13 @@ class Processor:
 
 		return queuesEmpty
 
+	def clearAllBuffers(self):
+		for i in range(config.NUMBER_EXECUTION_UNITS):
+			del self.ALUInstructionsToExecute[i][:]
+			del self.LSInstructionsToExecute[i][:]
+
+		del self.instructionsToDecode[:]
+
 	def printRegisters(self, forced=False):
 		if self.arguments.step or forced:
 			print "\n"
@@ -120,7 +131,6 @@ class Processor:
 		print "Cycles: " + str(self.clockCycles)
 		print "Instructions executed: " + str(self.instructionsExecuted)
 		print "Cycles per instruction: " + str(self.clockCycles/self.instructionsExecuted)
-		print "Instructions per cycle: " + str(self.instructionsExecuted/self.clockCycles)
 
 ###################################################
 ## FETCH STAGE
@@ -134,7 +144,7 @@ class Processor:
 			return False
 		
 		# Check how full the decode buffer is
-		if len(self.instructionsToDecode) > NUMBER_EXECUTION_UNITS:
+		if len(self.instructionsToDecode) > config.NUMBER_EXECUTION_UNITS:
 			if self.arguments.step:
 				print "FETCH STAGE " + str(unitID) + ": Decode buffer full"
 			return False
@@ -170,45 +180,48 @@ class Processor:
 			print "DECODE STAGE " + str(unitID) + ": Can't deal with HALT just yet"
 			return 
 
-		blocked = False
+		blockingInstruction = None
 
 		# Check against LS Units
 		for i in range(config.NUMBER_EXECUTION_UNITS):
-			if self.dependenciesExist(self.LSInstructionsToExecute[i], decodedInstruction) == True:
-				blocked = True
-				break
+			checkBlocking = self.dependenciesExist(self.LSInstructionsToExecute[i], decodedInstruction)
 
-			if self.dependenciesExist([self.LSExecutionUnits[i].currentInstruction], decodedInstruction) == True:
-				blocked = True
+			if checkBlocking != None:
+				blockingInstruction = checkBlocking
 				break
 
 		# Check against ALU units
-		if blocked == False:
+		if blockingInstruction == None:
 			for i in range(config.NUMBER_EXECUTION_UNITS):
-				if self.dependenciesExist(self.ALUInstructionsToExecute[i], decodedInstruction) == True:
-					blocked = True
-					break
+				checkBlocking = self.dependenciesExist(self.ALUInstructionsToExecute[i], decodedInstruction)
 
-				if self.dependenciesExist([self.ALUExecutionUnits[i].currentInstruction], decodedInstruction) == True:
-					blocked = True
+				if checkBlocking != None:
+					blockingInstruction = checkBlocking
 					break
 
 		# Check against writeback
-		if blocked == False:
-			if self.dependenciesExist(self.instructionsToWriteback, decodedInstruction) == True:
-				blocked = True
+		if blockingInstruction == None:
+			checkBlocking = self.dependenciesExist(self.instructionsToWriteback, decodedInstruction)
+			if checkBlocking != None:
+				blockingInstruction = checkBlocking
 
-		# If we're not blocked
-		if blocked == False:
-			# If we have a branch, let's try and take it as early as possible 
-			if decodedInstruction.instructionType == InstructionType.BRANCH:	
+		# Handle the branch instructions
+		if decodedInstruction.instructionType == InstructionType.BRANCH:	
+			if blockingInstruction == None:
 				# We've just branched, we don't want to decode again
 				if self.branchExecutionUnit.execute(decodedInstruction) == True:
 					return False
 				else:
 					self.instructionsToDecode.pop(0)
 					return True
-			elif decodedInstruction.instructionType == InstructionType.ALU:
+			else:
+				# Try a branch prediction
+				if self.arguments.branchpredictor == True:
+					self.branchExecutionUnit.predictedExecution(decodedInstruction, blockingInstruction)
+
+		# If we're not blocked
+		if blockingInstruction == None:				
+			if decodedInstruction.instructionType == InstructionType.ALU:
 				self.ALUInstructionsToExecute[unitID].append(decodedInstruction)
 				self.instructionsToDecode.pop(0)
 				return True
@@ -222,8 +235,6 @@ class Processor:
 		else:
 			if self.arguments.step:
 				print "DECODE STAGE " + str(unitID) + ": Dependencies exist, stalling" 
-
-			return False
 		
 		return False
 
@@ -248,9 +259,9 @@ class Processor:
 				(sourceRegister2 != None and \
 				sourceRegister2.value == innerInstruction.destinationRegister and \
 				sourceRegister2.type == OperandType.REGISTER):
-					return True
+					return innerInstruction
 
-		return False
+		return None
 
 ###################################################
 ## EXECUTE STAGE

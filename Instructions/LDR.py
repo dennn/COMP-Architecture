@@ -3,6 +3,7 @@ from Instructions.instruction import *
 class LDR(Instruction):
 
 	def __init__(self, currentInstruction):
+		self.listeners = []
 		self.opcode = currentInstruction.opcode
 		self.rawInstruction = currentInstruction.rawInstruction
 		self.operands = currentInstruction.operands
@@ -26,6 +27,8 @@ class LDR(Instruction):
 				self.result = operand1
 
 	def writeback(self, processor):
+		super(LDR, self).writeback(processor)
+
 		if self.result == None:
 			raise Exception("Result hasn't yet been calculated. Has execute been called?")
 
