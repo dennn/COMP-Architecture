@@ -11,6 +11,8 @@ class HALT(Instruction):
 		self.result = None
 		self.latency = 1
 		self.instructionType = InstructionType.OTHER
+		self.instructionStage = currentInstruction.instructionStage
+		self.instructionNumber = currentInstruction.instructionNumber
 
 	def execute(self, processor):
 		processor.continueRunning = False

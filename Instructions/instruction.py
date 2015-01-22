@@ -13,12 +13,14 @@ class Operand():
 
 class Instruction(object):
 
-	def __init__(self, line, assembler):
+	def __init__(self, line, assembler, number):
 		self.rawInstruction = line
 		self.opcode = None
 		self.operands = []
 		self.assembler = assembler
 		self.parseInstruction()
+		self.instructionStage = None
+		self.instructionNumber = number
 
 	def __str__(self):
 		return ' '.join(self.rawInstruction)

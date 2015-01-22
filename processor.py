@@ -8,6 +8,7 @@ from Instructions import *
 from Instructions.instruction import InstructionType
 from Instructions.instruction import OperandType
 from Units import *
+import HTML
 
 class Processor:
 
@@ -48,6 +49,10 @@ class Processor:
 
 	def run(self, assembledProgram):
 		self.program = assembledProgram
+		# Create a table to store instructions for the pipeline output
+		if self.arguments.pipelineOutput:
+			self.instructionTableData = [[] * len(self.program.instructions)]
+		
 		while self.continueRunning == True:
 			if self.arguments.step:
 				print "Cycle: " + str(self.clockCycles) + "\n"
@@ -66,6 +71,23 @@ class Processor:
 				result = self.fetch(i)
 				if result is not True:
 					break
+
+			# Update the pipeline table
+			if self.arguments.pipelineOutput:
+				for idx, x in enumerate(self.program.instructions):
+					print str(idx) + " " + str(x.instructionStage)
+
+				temp = [j for i in self.ALUInstructionsToExecute for j in i]
+				for instruction in temp:
+					self.program.instructions[instruction.instructionNumber].instructionStage = 'EXE'
+
+				temp = [j for i in self.LSInstructionsToExecute for j in i]
+
+				for instruction in temp:
+					self.program.instructions[instruction.instructionNumber].instructionStage = 'EXE'
+
+				for instruction in self.instructionsToWriteback:
+					self.program.instructions[instruction.instructionNumber].instructionStage = 'WB'
 
 			if self.checkForEmptyQueues() == True:
 				self.continueRunning = False
@@ -153,6 +175,7 @@ class Processor:
 
 		# Fetch the instruction
 		instruction = self.program.instructions[self.pc]
+		instruction.instructionStage = 'IF'
 		if self.arguments.step:
 			print "FETCH STAGE " + str(unitID) + ": " + str(instruction)
 		self.instructionsToDecode.append(instruction)
@@ -173,6 +196,8 @@ class Processor:
 			return
 
 		instructionToDecode = self.instructionsToDecode[0]
+		instructionToDecode.instructionStage = 'ID'
+
 		if self.arguments.step:
 			print "DECODE STAGE " + str(unitID) + ": Decoding instruction " + str(instructionToDecode)
 
@@ -210,6 +235,7 @@ class Processor:
 
 		# Handle the branch instructions
 		if decodedInstruction.instructionType == InstructionType.BRANCH:	
+			decodedInstruction.instructionStage = 'EXE'
 			if blockingInstruction == None:
 				# We've just branched, we don't want to decode again
 				if self.branchExecutionUnit.execute(decodedInstruction) == True:
@@ -217,6 +243,7 @@ class Processor:
 				else:
 					self.instructionsToDecode.pop(0)
 					return True
+				decodedInstruction.instructionStage = 'EXE'
 			else:
 				# Try a branch prediction
 				if self.arguments.branchpredictor == True:

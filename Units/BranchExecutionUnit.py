@@ -11,6 +11,8 @@ class BranchExecutionUnit():
 		# Add another instruction executed to the processor stats
 		self.processor.instructionsExecuted += 1
 
+		instruction.instructionStage = 'EXE'
+
 		if instruction.willTakeBranch(self.processor) == True:
 			if self.processor.arguments.step:
 				print "BRANCH UNIT: Branching\n"
@@ -32,6 +34,7 @@ class BranchExecutionUnit():
 
 		# Change the program counter
 		self.processor.pc = branchPrediction.addressToJumpTo
+		instruction.instructionStage = 'EXE'
 		# Flush instructions to decode
 		del self.processor.instructionsToDecode[:]
 

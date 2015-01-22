@@ -12,6 +12,8 @@ class BLT(Instruction):
 		self.result = None
 		self.latency = 1
 		self.instructionType = InstructionType.BRANCH
+		self.instructionStage = currentInstruction.instructionStage
+		self.instructionNumber = currentInstruction.instructionNumber
 
 	def execute(self):
 		raise Exception("We shouldn't be calling execute on a branch instruction")

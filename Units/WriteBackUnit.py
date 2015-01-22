@@ -16,6 +16,7 @@ class WriteBackUnit():
 
 		# Write back any instructions that exist in the queue
 		for instruction in instructions:
+			instruction.instructionStage = 'WB'
 			if self.processor.arguments.step:
 				print "WRITEBACK STAGE: Writing back instruction " + str(instruction)
 			instruction.writeback(self.processor)

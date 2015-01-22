@@ -12,6 +12,8 @@ class STR(Instruction):
 		self.result = None
 		self.latency = 4
 		self.instructionType = InstructionType.MEMORY
+		self.instructionStage = currentInstruction.instructionStage
+		self.instructionNumber = currentInstruction.instructionNumber
 
 	def execute(self, processor):
 		# Get all the operands

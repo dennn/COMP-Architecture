@@ -20,6 +20,8 @@ class LSExecutionUnit():
 		if self.currentInstruction == None:
 			self.currentInstruction = instructions[0]
 
+		instructions[0].instructionStage = 'EXE'
+
 		self.cycles += 1
 
 		# Only execute when the simulated cycles have been done

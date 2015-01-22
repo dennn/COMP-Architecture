@@ -46,8 +46,8 @@ class Assembler():
 			instructionCount += 1
 
 		# Now convert the instructions to actual instructions
-		for instruction in tempInstructions:
-			newInstruction = Instruction(instruction, self)
+		for idx, instruction in enumerate(tempInstructions):
+			newInstruction = Instruction(instruction, self, idx)
 			self.instructions.append(newInstruction)
 
 	def removeComments(self, string):

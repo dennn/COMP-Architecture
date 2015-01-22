@@ -19,6 +19,8 @@ class ALUExecutionUnit():
 		if self.currentInstruction == None:
 			self.currentInstruction = instructions[0]
 
+		self.currentInstruction.instructionStage = 'EXE'
+
 		self.cycles += 1
 
 		# Only execute when the simulated cycles have been done

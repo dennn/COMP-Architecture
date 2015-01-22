@@ -12,6 +12,8 @@ class SUB(Instruction):
 		self.result = None
 		self.latency = 1
 		self.instructionType = InstructionType.ALU
+		self.instructionStage = currentInstruction.instructionStage
+		self.instructionNumber = currentInstruction.instructionNumber
 
 	def execute(self, processor):
 		self.result = self.decodedOperands[1] - self.decodedOperands[2]
