@@ -23,6 +23,9 @@ class Instruction(object):
 	def __str__(self):
 		return ' '.join(self.rawInstruction)
 
+	def __repr__(self):
+		return self.__str__()
+
 	# Methods for the subclasses to implement
 	def execute(self, processor):
 		pass 
