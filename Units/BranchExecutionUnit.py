@@ -1,4 +1,8 @@
 # -*- coding: utf-8 -*-
+from Instructions.instruction import Instruction
+from Instructions.instruction import InstructionType
+from Instructions.instruction import OperandType
+
 class BranchExecutionUnit():
 
 	def __init__(self, processor, predictor):
@@ -15,10 +19,13 @@ class BranchExecutionUnit():
 			if self.processor.arguments.step:
 				print "BRANCH UNIT: Branching\n"
 
-			# Flush instructions to decode
+			# Flush instructions to decode 
 			del self.processor.instructionsToDecode[:]
 
 			return True
+		else:
+			if self.processor.arguments.step:
+				print "BRANCH UNIT: Not branching"
 
 		return False
 
@@ -40,6 +47,8 @@ class BranchExecutionUnit():
 
 		if self.processor.arguments.step and branchPrediction.shouldTake == True:
 			print "Taking branch prediction to " + str(instruction.decodedOperands[0].value.memoryLocation)
+		elif self.processor.arguments.step:
+			print "BRANCH UNIT: Not taking branch prediction"
 
 		# Create a dictionary
 		prediction = { "branchInstruction" : instruction,
@@ -61,10 +70,12 @@ class BranchExecutionUnit():
 		branchPrediction = prediction["branchPrediction"]
 		branchInstruction = prediction["branchInstruction"]
 
-		# Check if we were right to branch
-		if branchPrediction.shouldTake != branchInstruction.shouldBranch():
+		#Recalculate the instruction
+		newInstruction = Instruction(branchInstruction.rawInstruction, self.processor.program)
+		decodedNewInstruction = newInstruction.decode(self.processor)
 
-			print "Incorrect branch prediction"
+		# Check if we were right to branch
+		if branchPrediction.shouldTake != decodedNewInstruction.shouldBranch():
 
 			# Clear everything
 			self.processor.clearAllBuffers()
@@ -73,13 +84,14 @@ class BranchExecutionUnit():
 			if branchPrediction.shouldTake == False:
 				if self.processor.arguments.step:
 					print "Incorrect branch prediction, should have taken"
-				self.processor.pc = branchPrediction.addressToJumpTo
+				self.processor.pc = branchPrediction.failureAddress
 			else:
 				if self.processor.arguments.step:
 					print "Incorrect branch prediction, should not have taken"
 				self.processor.pc = branchPrediction.failureAddress
 		else:
-			if branchPrediction.shouldTake == True:
-				print "Correct to branch on instruction " +str(blockingInstruction)
-			else:
-				print "Correct to not branch on instruction " +str(blockingInstruction)
+			if self.processor.arguments.step:
+				if branchPrediction.shouldTake == True:
+					print "Correct to branch on instruction " +str(blockingInstruction)
+				else:
+					print "Correct to not branch on instruction " +str(blockingInstruction)

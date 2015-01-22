@@ -27,9 +27,9 @@ class LDR(Instruction):
 				self.result = operand1
 
 	def writeback(self, processor):
-		super(LDR, self).writeback(processor)
-
 		if self.result == None:
 			raise Exception("Result hasn't yet been calculated. Has execute been called?")
 
 		processor.registers[self.destinationRegister] = self.result
+
+		super(LDR, self).writeback(processor)

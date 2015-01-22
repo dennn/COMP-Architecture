@@ -38,3 +38,9 @@ class BranchResult:
 		self.shouldTake = take
 		self.addressToJumpTo = addressPredicted
 		self.failureAddress = failureAddress
+
+	def __str__(self):
+		if self.shouldTake:
+			return "Predicted that we should branch"
+		else:
+			return "Predicted that we shouldn't branch"

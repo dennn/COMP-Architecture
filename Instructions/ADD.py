@@ -17,9 +17,10 @@ class ADD(Instruction):
 		self.result = self.decodedOperands[1] + self.decodedOperands[2]
 
 	def writeback(self, processor):
-		super(ADD, self).writeback(processor)
-
 		if self.result == None:
 			raise Exception("Result hasn't yet been calculated. Has execute been called?")
 
 		processor.registers[self.destinationRegister] = self.result
+
+		super(ADD, self).writeback(processor)
+
